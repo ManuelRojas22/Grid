@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menú de Comidas Rápidas</title>
+  <style>
+    /*
+     ******************************************************************************************************************
+     * VARIABLES CSS: Reemplazan valores repetidos, facilitando la gestión de colores y espaciados.
+     ******************************************************************************************************************
+     */
+    :root {
+      /* Colores principales del diseño */
+      --color-principal: #e74c3c; /* Rojo para la marca */
+      --color-secundario: #f1c40f; /* Amarillo para acentos */
+      --color-terciario: #2c3e50; /* Azul oscuro para texto y fondo de secciones */
+
+      /* Colores de fondo y texto */
+      --color-fondo: #ecf0f1; /* Gris claro suave */
+      --color-tarjetas: #ffffff; /* Blanco puro para las tarjetas de menú */
+      --color-sombra: rgba(0, 0, 0, 0.2); /* Sombra para profundidad */
+      --color-texto: #34495e; /* Gris oscuro para el cuerpo del texto */
+      --color-enlace: #e74c3c; /* Color de los enlaces */
+      --color-borde: #bdc3c7; /* Color de bordes sutiles */
+
+      /* Espaciado */
+      --espaciado-medio: 20px;
+      --espaciado-grande: 40px;
+    }
+
+    /*
+     ******************************************************************************************************************
+     * ESTILOS BÁSICOS: Estilos generales del cuerpo de la página.
+     ******************************************************************************************************************
+     */
+    body {
+      font-family: Arial, sans-serif; /* Tipo de letra principal */
+      margin: 0; /* Sin márgenes externos */
+      padding: 0; /* Sin relleno externo */
+      background-color: var(--color-fondo); /* Aplica el color de fondo */
+      color: var(--color-texto); /* Aplica el color del texto */
+      
+      /* La clave para el diseño responsivo en escritorio: CSS Grid */
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      grid-template-rows: auto 1fr auto;
+      grid-template-areas:
+        "lado_izquierdo cabeza cabeza"
+        "lado_izquierdo cuerpo cuerpo"
+        "lado_izquierdo pie pie";
+      min-height: 100vh; /* Asegura que ocupe toda la altura de la pantalla */
+      gap: var(--espaciado-medio); /* Espacio entre los elementos del grid */
+      padding: var(--espaciado-medio); /* Relleno general en el grid */
+    }
+
+    /* Estilos de enlaces */
+    a {
+      color: var(--color-enlace);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: var(--color-secundario);
+    }
+
+    /*
+     ******************************************************************************************************************
+     * MEDIA QUERIES: Diseño Responsivo (Layout para móviles)
+     ******************************************************************************************************************
+     */
+    /* Adaptación para dispositivos móviles (ancho máximo de 768px) */
+    @media (max-width: 768px) {
+      body {
+        /* Se cambia el grid para que los elementos se apilen en una sola columna */
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "cabeza"
+          "cuerpo"
+          "lado_izquierdo"
+          "pie";
+        gap: 10px; /* Reduce el espacio entre elementos en pantallas pequeñas */
+        padding: 10px; /* Reduce el espacio interno en móviles */
+      }
+      /* Se oculta el menú lateral fijo en móviles */
+      .lado_izquierdo {
+        display: none;
+      }
+    }
+
+    /*
+     ******************************************************************************************************************
+     * MENÚ DE ACORDEÓN (MÓVIL)
+     ******************************************************************************************************************
+     */
+    /* Botón que activa el menú en vista móvil */
+    .menu-toggle {
+        display: none; /* Oculto en escritorio */
+    }
+    @media (max-width: 768px) {
+        .menu-toggle {
+            display: block; /* Se muestra solo en móviles */
+            position: fixed; /* Permanece visible al hacer scroll */
+            top: 20px;
+            right: 20px;
+            z-index: 1001; /* Asegura que esté sobre otros elementos */
+            background-color: var(--color-principal);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px var(--color-sombra);
+            transition: transform 0.2s;
+        }
+        .menu-toggle:active {
+          transform: scale(0.95);
+        }
+    }
+
+    /* El contenedor del menú que se despliega */
+    .menu-accordion {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 80%;
+      height: 100%;
+      background-color: var(--color-principal);
+      padding: var(--espaciado-medio);
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      transition: transform 0.3s ease-in-out;
+    }
+    /* Se hace visible cuando tiene la clase 'open' */
+    .menu-accordion.open {
+      display: block;
+    }
+
+    /* El fondo oscuro que se muestra detrás del menú */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+    /* Se hace visible cuando tiene la clase 'open' */
+    .overlay.open {
+      display: block;
+    }
+
+    /* Evita que el fondo se mueva al abrir el menú */
+    .no-scroll {
+      overflow: hidden;
+    }
+
+    /*
+     ******************************************************************************************************************
+     * ESTILOS DE SECCIONES: Aplican a las áreas definidas en el grid.
+     ******************************************************************************************************************
+     */
+    /* Estilos generales para todas las cajas del grid */
+    .lado_izquierdo, .cabeza, .cuerpo, .pie {
+      border-radius: 12px;
+      padding: var(--espaciado-medio);
+      box-shadow: 0 4px 8px var(--color-sombra);
+      transition: all 0.3s ease;
+    }
+
+    .lado_izquierdo:hover, .cabeza:hover, .cuerpo:hover, .pie:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px var(--color-sombra);
+    }
+
+    /* 📌 Lado Izquierdo (Menú) */
+    .lado_izquierdo {
+      grid-area: lado_izquierdo; /* Define el área en el grid */
+      background-color: var(--color-principal); /* Color de fondo */
+      color: white;
+      padding-top: 40px;
+      text-align: left;
+    }
+    .lado_izquierdo h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 1.5em;
+      text-align: center;
+    }
+    .lado_izquierdo ul {
+      list-style: none; /* Elimina los puntos de la lista */
+      padding: 0;
+    }
+    .lado_izquierdo li {
+      margin-bottom: 20px;
+    }
+    .lado_izquierdo a {
+      color: white;
+      text-decoration: none;
+      font-size: 1.1em;
+      padding: 10px 15px;
+      display: block;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+    }
+    .lado_izquierdo a:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* 📌 Cabeza (Header) */
+    .cabeza {
+      grid-area: cabeza; /* Define el área en el grid */
+      background-color: var(--color-tarjetas);
+      display: flex; /* Utiliza Flexbox para alinear elementos */
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .cabeza h1 {
+      margin: 0;
+      font-size: 1.8em;
+      color: var(--color-principal);
+    }
+    .cabeza .estado {
+      background-color: var(--color-secundario);
+      color: var(--color-texto);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      font-weight: bold;
+    }
+
+    /* 📌 Cuerpo (Menú de comida) */
+    .cuerpo {
+      grid-area: cuerpo; /* Define el área en el grid */
+      background-color: var(--color-tarjetas);
+      display: flex; /* Utiliza Flexbox para las columnas */
+      gap: 15px;
+      justify-content: space-around;
+      overflow-x: auto;
+      padding: var(--espaciado-medio);
+    }
+    .columna {
+      flex: 1;
+      min-width: 250px;
+      background-color: var(--color-fondo);
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 4px var(--color-sombra);
+    }
+    .columna h3 {
+      margin-top: 0;
+      color: var(--color-principal);
+      border-bottom: 2px solid var(--color-secundario);
+      padding-bottom: 10px;
+    }
+    .tarjeta {
+      background-color: var(--color-tarjetas);
+      border: 1px solid var(--color-borde);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 2px var(--color-sombra);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .tarjeta:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 4px 8px var(--color-sombra);
+    }
+
+    /* Estilos para el banner de ofertas */
+    .ofertas-banner {
+      background-color: #f1c40f; /* Color del banner de la imagen */
+      color: #2c3e50; /* Color de texto del banner */
+      text-align: center;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px var(--color-sombra);
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+
+    /* 📌 Pie (Footer) */
+    .pie {
+      grid-area: pie; /* Define el área en el grid */
+      background-color: var(--color-terciario); /* Color de fondo */
+      color: white;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 20px;
+    }
+    .pie .redes-sociales {
+      display: flex;
+      gap: 15px;
+    }
+    .pie .redes-sociales a {
+      color: white;
+      font-size: 1.5em;
+      transition: color 0.2s;
+    }
+    .pie .redes-sociales a:hover {
+      color: var(--color-secundario);
+    }
+
+  </style>
+</head>
+<body>
+
+  <button class="menu-toggle" aria-expanded="false" aria-controls="menuAccordion">Menú</button>
+  <div class="overlay" aria-hidden="true"></div>
+
+  <nav class="menu-accordion" id="menuAccordion" role="dialog" aria-modal="true" aria-hidden="true">
+    <h2>Menú</h2>
+    <ul>
+      <li><a href="#">Inicio</a></li>
+      <li><a href="#">Menú Completo</a></li>
+      <li><a href="#">Ofertas</a></li>
+      <li><a href="#">Combos</a></li>
+      <li><a href="#">Bebidas</a></li>
+      <li><a href="#">Postres</a></li>
+      <li><a href="#">Contáctanos</a></li>
+    </ul>
+  </nav>
+
+  <header class="cabeza">
+    <h1>Súper Comidas Rápidas</h1>
+    <span class="estado">¡Abierto!</span>
+  </header>
+
+  <aside class="lado_izquierdo">
+    <h2>Menú</h2>
+    <ul>
+      <li><a href="#">Inicio</a></li>
+      <li><a href="#">Menú Completo</a></li>
+      <li><a href="#">Ofertas</a></li>
+      <li><a href="#">Combos</a></li>
+      <li><a href="#">Bebidas</a></li>
+      <li><a href="#">Postres</a></li>
+      <li><a href="#">Contáctanos</a></li>
+    </ul>
+  </aside>
+
+  <main class="cuerpo">
+    <div class="ofertas-banner">
+      🎉 ¡Ofertas especiales del día! 2x1 en hamburguesas clásicas. 🎉
+    </div>
+    <div class="columna">
+      <h3>Hamburguesas 🍔</h3>
+      <div class="tarjeta">
+        <h4>Hamburguesa Clásica</h4>
+        <p>Carne de res, queso cheddar, lechuga, tomate y salsa especial. ¡Deliciosa!</p>
+        <p><strong>$5.99</strong></p>
+      </div>
+      <div class="tarjeta">
+        <h4>Hamburguesa de Pollo Crispy</h4>
+        <p>Crujiente pollo empanizado, lechuga, tomate y aderezo ranch.</p>
+        <p><strong>$6.50</strong></p>
+      </div>
+      <div class="tarjeta">
+        <h4>Hamburguesa Vegana</h4>
+        <p>Hamburguesa de lentejas, aguacate, cebolla morada y pepinillos.</p>
+        <p><strong>$7.00</strong></p>
+      </div>
+    </div>
+    <div class="columna">
+      <h3>Combos 🍟</h3>
+      <div class="tarjeta">
+        <h4>Combo Clásico</h4>
+        <p>Hamburguesa Clásica, papas fritas y refresco grande.</p>
+        <p><strong>$8.99</strong></p>
+      </div>
+      <div class="tarjeta">
+        <h4>Combo Doble</h4>
+        <p>Doble Hamburguesa, papas fritas y refresco grande.</p>
+        <p><strong>$10.50</strong></p>
+      </div>
+      <div class="tarjeta">
+        <h4>Combo Familiar</h4>
+        <p>4 hamburguesas, 2 porciones de papas familiares y 4 refrescos.</p>
+        <p><strong>$25.00</strong></p>
+      </div>
+    </div>
+    <div class="columna">
+      <h3>Pizzas 🍕</h3>
+      <div class="tarjeta">
+        <h4>Pizza Pepperoni</h4>
+        <p>La clásica de pepperoni con extra queso. Tamaño mediano.</p>
+        <p><strong>$12.00</strong></p>
+      </div>
+      <div class="tarjeta">
+        <h4>Pizza Hawaiana</h4>
+        <p>Jamón, piña y queso. ¡Una explosión de sabor!</p>
+        <p><strong>$13.00</strong></p>
+      </div>
+      <div class="tarjeta">
+        <h4>Pizza Vegetariana</h4>
+        <p>Pimientos, cebolla, champiñones, aceitunas negras y espinacas.</p>
+        <p><strong>$12.50</strong></p>
+      </div>
+    </div>
+    <div class="columna">
+      <h3>Bebidas y Postres 🥤🍨</h3>
+      <div class="tarjeta">
+        <h4>Batido de Vainilla</h4>
+        <p>Cremoso batido con helado de vainilla y leche.</p>
+        <p><strong>$3.50</strong></p>
+      </div>
+      <div class="tarjeta">
+        <h4>Helado de Chocolate</h4>
+        <p>Delicioso helado con trozos de chocolate.</p>
+        <p><strong>$2.50</strong></p>
+      </div>
+      <div class="tarjeta">
+        <h4>Tarta de Manzana</h4>
+        <p>Porción de tarta de manzana caliente con canela.</p>
+        <p><strong>$4.00</strong></p>
+      </div>
+      <div class="tarjeta">
+        <h4>Refrescos</h4>
+        <p>Variedad de refrescos de 500 ml.</p>
+        <p><strong>$2.00</strong></p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="pie">
+    <p>&copy; 2025 Súper Comidas Rápidas. Todos los derechos reservados.</p>
+    <div class="redes-sociales">
+      <a href="#" aria-label="Síguenos en Facebook">Facebook</a>
+      <a href="#" aria-label="Síguenos en Twitter">Twitter</a>
+      <a href="#" aria-label="Síguenos en Instagram">Instagram</a>
+    </div>
+  </footer>
+
+  <script>
+    // Selecciona los elementos del DOM 
+    const menuToggle = document.querySelector('.menu-toggle');
+    const menuAccordion = document.querySelector('.menu-accordion');
+    const overlay = document.querySelector('.overlay');
+
+    /**
+     * @description Abre el menú móvil de acordeón.
+     * Agrega las clases CSS 'open' para mostrar el menú.
+     * Agrega 'no-scroll' al body para evitar el desplazamiento.
+     */
+    function openMenu() {
+      menuAccordion.classList.add('open');
+      overlay.classList.add('open');
+      document.body.classList.add('no-scroll');
+      menuToggle.setAttribute('aria-expanded', 'true');
+      menuAccordion.setAttribute('aria-hidden', 'false');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+
+    /**
+     * @description Cierra el menú móvil de acordeón.
+     * Remueve las clases CSS 'open' para ocultar el menú.
+     * Remueve 'no-scroll' para restaurar el desplazamiento.
+     */
+    function closeMenu() {
+      menuAccordion.classList.remove('open');
+      overlay.classList.remove('open');
+      document.body.classList.remove('no-scroll');
+      menuToggle.setAttribute('aria-expanded', 'false');
+      menuAccordion.setAttribute('aria-hidden', 'true');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    // Escucha eventos del usuario para abrir y cerrar el menú
+    menuToggle.addEventListener('click', openMenu);
+    overlay.addEventListener('click', closeMenu);
+
+    // Cierra el menú con la tecla 'Escape'
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeMenu();
+      }
+    });
+
+  </script>
+</body>
+</html>
